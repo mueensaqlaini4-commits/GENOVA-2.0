@@ -1,0 +1,2054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#050814">
+<title>GENOVA 2.0 — Advanced Biology Lab</title>
+
+<style>
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+  -webkit-tap-highlight-color:transparent;
+}
+
+html,body{
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:#03050c;
+  color:#fff;
+  font-family:Inter,Arial,sans-serif;
+}
+
+body{
+  touch-action:none;
+}
+
+#app{
+  position:fixed;
+  inset:0;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 45%,#101a3b 0%,#050814 45%,#02030a 100%);
+}
+
+#canvas{
+  position:absolute;
+  inset:0;
+}
+
+canvas{
+  display:block;
+}
+
+.top{
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  height:76px;
+  padding:15px 18px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  z-index:10;
+  background:linear-gradient(to bottom,rgba(2,4,12,.9),transparent);
+  pointer-events:none;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:11px;
+}
+
+.logo{
+  width:42px;
+  height:42px;
+  border:1px solid rgba(100,220,255,.5);
+  border-radius:14px;
+  display:grid;
+  place-items:center;
+  background:rgba(20,30,60,.55);
+  box-shadow:0 0 25px rgba(40,190,255,.18);
+  font-size:21px;
+}
+
+.brand h1{
+  font-size:17px;
+  letter-spacing:3px;
+}
+
+.brand small{
+  display:block;
+  margin-top:2px;
+  opacity:.5;
+  font-size:8px;
+  letter-spacing:2px;
+}
+
+.status{
+  pointer-events:auto;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  padding:8px 11px;
+  border-radius:20px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(8,12,27,.65);
+  backdrop-filter:blur(12px);
+  font-size:8px;
+  letter-spacing:1.5px;
+}
+
+.dot{
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:#4dffbc;
+  box-shadow:0 0 12px #4dffbc;
+}
+
+.mode{
+  position:absolute;
+  top:88px;
+  left:18px;
+  z-index:8;
+  pointer-events:none;
+}
+
+.mode strong{
+  font-size:22px;
+  letter-spacing:2px;
+}
+
+.mode span{
+  display:block;
+  opacity:.45;
+  font-size:9px;
+  letter-spacing:2px;
+  margin-top:4px;
+}
+
+.flow{
+  position:absolute;
+  top:136px;
+  left:18px;
+  right:18px;
+  z-index:9;
+  display:flex;
+  gap:6px;
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+
+.flow::-webkit-scrollbar{
+  display:none;
+}
+
+.node{
+  flex:0 0 auto;
+  min-width:54px;
+  height:42px;
+  padding:0 10px;
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(7,11,25,.68);
+  backdrop-filter:blur(10px);
+  border-radius:14px;
+  color:#fff;
+  font-size:9px;
+  letter-spacing:1px;
+  opacity:.55;
+}
+
+.node.active{
+  opacity:1;
+  border-color:rgba(91,218,255,.6);
+  box-shadow:0 0 20px rgba(30,190,255,.16);
+  background:rgba(20,55,90,.55);
+}
+
+.node b{
+  display:block;
+  font-size:16px;
+  margin-bottom:2px;
+}
+
+.bottom{
+  position:absolute;
+  left:12px;
+  right:12px;
+  bottom:12px;
+  z-index:12;
+  display:flex;
+  gap:8px;
+  justify-content:center;
+  flex-wrap:wrap;
+  pointer-events:auto;
+}
+
+.btn{
+  min-width:55px;
+  height:45px;
+  padding:0 13px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:14px;
+  background:rgba(7,11,25,.72);
+  color:#fff;
+  backdrop-filter:blur(15px);
+  font-size:9px;
+  letter-spacing:1px;
+  cursor:pointer;
+}
+
+.btn:active{
+  transform:scale(.94);
+}
+
+.btn.primary{
+  border-color:rgba(80,220,255,.55);
+  background:rgba(15,72,100,.6);
+}
+
+.btn.danger{
+  border-color:rgba(255,90,120,.4);
+}
+
+.panel{
+  position:absolute;
+  z-index:20;
+  left:14px;
+  right:14px;
+  bottom:72px;
+  max-height:55vh;
+  overflow:auto;
+  display:none;
+  padding:16px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:22px;
+  background:rgba(5,9,22,.88);
+  backdrop-filter:blur(22px);
+  box-shadow:0 15px 50px rgba(0,0,0,.45);
+}
+
+.panel.show{
+  display:block;
+}
+
+.panel-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:14px;
+}
+
+.panel h2{
+  font-size:14px;
+  letter-spacing:2px;
+}
+
+.close{
+  border:0;
+  background:none;
+  color:#fff;
+  font-size:22px;
+}
+
+.sequence{
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+  margin:12px 0;
+}
+
+.base{
+  width:29px;
+  height:29px;
+  border-radius:8px;
+  display:grid;
+  place-items:center;
+  font-weight:bold;
+  font-size:11px;
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.06);
+}
+
+.base.selected{
+  outline:2px solid #fff;
+  transform:translateY(-2px);
+}
+
+.info{
+  padding:11px;
+  border-radius:13px;
+  background:rgba(255,255,255,.045);
+  margin-bottom:9px;
+  font-size:10px;
+  line-height:1.5;
+  opacity:.8;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:8px;
+}
+
+.grid .btn{
+  width:100%;
+}
+
+.toast{
+  position:absolute;
+  left:50%;
+  bottom:78px;
+  transform:translateX(-50%) translateY(15px);
+  z-index:50;
+  padding:10px 15px;
+  border-radius:14px;
+  background:rgba(8,13,30,.92);
+  border:1px solid rgba(90,220,255,.3);
+  font-size:10px;
+  opacity:0;
+  pointer-events:none;
+  transition:.25s;
+  white-space:nowrap;
+}
+
+.toast.show{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+
+.scan{
+  position:absolute;
+  inset:0;
+  z-index:3;
+  pointer-events:none;
+  opacity:.13;
+  background:
+    linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px);
+  background-size:100% 5px;
+  mix-blend-mode:screen;
+}
+
+.centerHint{
+  position:absolute;
+  left:50%;
+  top:52%;
+  transform:translate(-50%,-50%);
+  z-index:6;
+  text-align:center;
+  pointer-events:none;
+  opacity:.55;
+  transition:.3s;
+}
+
+.centerHint.hidden{
+  opacity:0;
+}
+
+.centerHint b{
+  display:block;
+  font-size:12px;
+  letter-spacing:2px;
+}
+
+.centerHint span{
+  font-size:8px;
+  letter-spacing:1.5px;
+}
+
+#loader{
+  position:absolute;
+  inset:0;
+  z-index:100;
+  display:grid;
+  place-items:center;
+  background:#02040b;
+  transition:.6s;
+}
+
+.loaderBox{
+  text-align:center;
+}
+
+.loaderDNA{
+  font-size:45px;
+  animation:spin 2s linear infinite;
+}
+
+.loaderBox p{
+  margin-top:14px;
+  font-size:9px;
+  letter-spacing:3px;
+  opacity:.55;
+}
+
+@keyframes spin{
+  to{transform:rotate(360deg)}
+}
+
+@media(max-width:500px){
+  .brand h1{font-size:15px}
+  .mode strong{font-size:19px}
+  .bottom .btn{
+    min-width:48px;
+    padding:0 9px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div id="app">
+
+<div id="loader">
+  <div class="loaderBox">
+    <div class="loaderDNA">🧬</div>
+    <p>INITIALIZING GENOVA</p>
+  </div>
+</div>
+
+<div id="canvas"></div>
+<div class="scan"></div>
+
+<header class="top">
+  <div class="brand">
+    <div class="logo">🧬</div>
+    <div>
+      <h1>GENOVA</h1>
+      <small>ADVANCED BIOLOGY SIMULATION</small>
+    </div>
+  </div>
+
+  <div class="status">
+    <span class="dot"></span>
+    VIRTUAL LAB
+  </div>
+</header>
+
+<div class="mode">
+  <strong id="modeTitle">CELL</strong>
+  <span id="modeSub">BIOLOGICAL SYSTEM</span>
+</div>
+
+<div class="flow">
+  <button class="node active" data-mode="cell"><b>◉</b>CELL</button>
+  <button class="node" data-mode="nucleus"><b>◎</b>NUCLEUS</button>
+  <button class="node" data-mode="chromosome"><b>✣</b>CHROMO</button>
+  <button class="node" data-mode="dna"><b>🧬</b>DNA</button>
+  <button class="node" data-mode="rna"><b>⌁</b>RNA</button>
+  <button class="node" data-mode="protein"><b>●</b>PROTEIN</button>
+  <button class="node" data-mode="genetics"><b>♬</b>GENETICS</button>
+</div>
+
+<div class="centerHint" id="hint">
+  <b>TAP THE MODEL</b>
+  <span>EXPLORE THE NEXT BIOLOGICAL LEVEL</span>
+</div>
+
+<div class="panel" id="panel">
+  <div class="panel-head">
+    <h2 id="panelTitle">DNA CONTROL</h2>
+    <button class="close" onclick="closePanel()">×</button>
+  </div>
+  <div id="panelContent"></div>
+</div>
+
+<div class="bottom">
+  <button class="btn primary" onclick="openExplore()">EXPLORE</button>
+  <button class="btn" onclick="openDNA()">DNA</button>
+  <button class="btn" onclick="openSimulation()">SIM</button>
+  <button class="btn" onclick="openGenetics()">GENETICS</button>
+  <button class="btn" onclick="resetWorld()">RESET</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+</div>
+
+<script type="module">
+
+import * as THREE from
+"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+
+import {OrbitControls} from
+"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+
+const container=document.getElementById("canvas");
+
+const scene=new THREE.Scene();
+scene.fog=new THREE.FogExp2(0x03050c,.018);
+
+const camera=new THREE.PerspectiveCamera(
+  55,
+  innerWidth/innerHeight,
+  .1,
+  1000
+);
+
+camera.position.set(0,0,22);
+
+const renderer=new THREE.WebGLRenderer({
+  antialias:true,
+  alpha:true,
+  powerPreference:"high-performance"
+});
+
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.8));
+renderer.setSize(innerWidth,innerHeight);
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+
+container.appendChild(renderer.domElement);
+
+const controls=new OrbitControls(camera,renderer.domElement);
+controls.enableDamping=true;
+controls.dampingFactor=.07;
+controls.minDistance=4;
+controls.maxDistance=45;
+
+const ambient=new THREE.AmbientLight(0xffffff,.8);
+scene.add(ambient);
+
+const light1=new THREE.PointLight(0x44ccff,18,60);
+light1.position.set(7,8,10);
+scene.add(light1);
+
+const light2=new THREE.PointLight(0x9955ff,13,50);
+light2.position.set(-9,-5,6);
+scene.add(light2);
+
+const root=new THREE.Group();
+scene.add(root);
+
+const groups={
+  cell:new THREE.Group(),
+  nucleus:new THREE.Group(),
+  chromosome:new THREE.Group(),
+  dna:new THREE.Group(),
+  rna:new THREE.Group(),
+  protein:new THREE.Group(),
+  genetics:new THREE.Group()
+};
+
+Object.values(groups).forEach(g=>root.add(g));
+
+let currentMode="cell";
+let selectedIndex=-1;
+
+let sequence=[
+  "A","T","G","C","A","C","G","T",
+  "T","A","C","G","G","C","A","T",
+  "A","G","C","T","C","G","A","T"
+];
+
+const originalSequence=[...sequence];
+
+const colors={
+  A:0x4db6ff,
+  T:0xff6688,
+  G:0x62e68a,
+  C:0xffc857
+};
+
+function mat(color,opacity=1,emissive=true){
+  return new THREE.MeshStandardMaterial({
+    color,
+    transparent:opacity<1,
+    opacity,
+    roughness:.35,
+    metalness:.15,
+    emissive:emissive?color:0x000000,
+    emissiveIntensity:.16
+  });
+}
+
+/* ---------- STAR PARTICLES ---------- */
+
+const starGeo=new THREE.BufferGeometry();
+const starCount=900;
+const pos=new Float32Array(starCount*3);
+
+for(let i=0;i<starCount*3;i++){
+  pos[i]=(Math.random()-.5)*150;
+}
+
+starGeo.setAttribute(
+  "position",
+  new THREE.BufferAttribute(pos,3)
+);
+
+const stars=new THREE.Points(
+  starGeo,
+  new THREE.PointsMaterial({
+    color:0x7fdcff,
+    size:.035,
+    transparent:true,
+    opacity:.55
+  })
+);
+
+scene.add(stars);
+
+/* ---------- CELL ---------- */
+
+function buildCell(){
+
+  const g=groups.cell;
+
+  const membrane=new THREE.Mesh(
+    new THREE.SphereGeometry(7,64,64),
+    new THREE.MeshPhysicalMaterial({
+      color:0x4bbcff,
+      transparent:true,
+      opacity:.09,
+      roughness:.1,
+      metalness:.1,
+      transmission:.2,
+      side:THREE.DoubleSide
+    })
+  );
+
+  g.add(membrane);
+
+  const membraneGlow=new THREE.Mesh(
+    new THREE.SphereGeometry(7.05,32,32),
+    new THREE.MeshBasicMaterial({
+      color:0x44ccff,
+      transparent:true,
+      opacity:.025,
+      wireframe:true
+    })
+  );
+
+  g.add(membraneGlow);
+
+  /* nucleus */
+
+  const nucleus=new THREE.Mesh(
+    new THREE.SphereGeometry(2.6,48,48),
+    new THREE.MeshStandardMaterial({
+      color:0x8d55ff,
+      transparent:true,
+      opacity:.42,
+      emissive:0x5b22aa,
+      emissiveIntensity:.25
+    })
+  );
+
+  nucleus.name="nucleus";
+  g.add(nucleus);
+
+  /* mitochondria */
+
+  for(let i=0;i<9;i++){
+
+    const m=new THREE.Mesh(
+      new THREE.SphereGeometry(.55,20,14),
+      mat(0xff7a45,.8)
+    );
+
+    m.scale.set(1.7,.65,.7);
+
+    const a=i/9*Math.PI*2;
+
+    m.position.set(
+      Math.cos(a)*4.1,
+      Math.sin(a*1.8)*2.7,
+      Math.sin(a)*3.2
+    );
+
+    m.rotation.z=a;
+
+    m.name="mitochondria";
+
+    g.add(m);
+  }
+
+  /* ribosomes */
+
+  for(let i=0;i<55;i++){
+
+    const r=new THREE.Mesh(
+      new THREE.SphereGeometry(.075,8,8),
+      mat(0x75eaff,.8)
+    );
+
+    const u=Math.random()*Math.PI*2;
+    const v=Math.acos(2*Math.random()-1);
+    const radius=5.7;
+
+    r.position.set(
+      radius*Math.sin(v)*Math.cos(u),
+      radius*Math.sin(v)*Math.sin(u),
+      radius*Math.cos(v)
+    );
+
+    g.add(r);
+  }
+
+  /* ER rings */
+
+  for(let i=0;i<4;i++){
+
+    const tor=new THREE.Mesh(
+      new THREE.TorusGeometry(
+        2.8+i*.25,
+        .035,
+        8,
+        100
+      ),
+      mat(0x8f72ff,.35)
+    );
+
+    tor.rotation.x=Math.PI/2;
+    tor.position.z=-.7+i*.35;
+
+    g.add(tor);
+  }
+}
+
+buildCell();
+
+/* ---------- NUCLEUS ---------- */
+
+function buildNucleus(){
+
+  const g=groups.nucleus;
+
+  const shell=new THREE.Mesh(
+    new THREE.SphereGeometry(5.2,48,48),
+    new THREE.MeshPhysicalMaterial({
+      color:0x7f5cff,
+      transparent:true,
+      opacity:.08,
+      wireframe:true
+    })
+  );
+
+  g.add(shell);
+
+  const core=new THREE.Mesh(
+    new THREE.SphereGeometry(2.7,40,40),
+    new THREE.MeshStandardMaterial({
+      color:0x744aff,
+      transparent:true,
+      opacity:.22,
+      emissive:0x5720cc,
+      emissiveIntensity:.25
+    })
+  );
+
+  core.name="chromosome-area";
+  g.add(core);
+
+  for(let i=0;i<13;i++){
+
+    const curve=new THREE.CatmullRomCurve3([]);
+
+    for(let j=0;j<12;j++){
+
+      const a=j/11*Math.PI*2;
+
+      curve.points.push(
+        new THREE.Vector3(
+          Math.sin(a*2+i)*1.8,
+          Math.cos(a*1.5+i)*1.8,
+          Math.sin(a+i)*1.8
+        )
+      );
+    }
+
+    const line=new THREE.Mesh(
+      new THREE.TubeGeometry(curve,40,.045,6,false),
+      mat(0x66ddff,.65)
+    );
+
+    line.name="chromosome-fiber";
+
+    g.add(line);
+  }
+}
+
+buildNucleus();
+
+/* ---------- CHROMOSOME ---------- */
+
+function buildChromosome(){
+
+  const g=groups.chromosome;
+
+  function chromatid(offset){
+
+    const group=new THREE.Group();
+
+    const points1=[];
+    const points2=[];
+
+    for(let i=0;i<=40;i++){
+
+      const y=5-i*.25;
+
+      const wave=Math.sin(i*.38)*.7;
+
+      points1.push(
+        new THREE.Vector3(
+          offset+wave,
+          y,
+          0
+        )
+      );
+
+      points2.push(
+        new THREE.Vector3(
+          offset-wave,
+          y-10+0,
+          0
+        )
+      );
+    }
+
+    const c1=new THREE.CatmullRomCurve3(points1);
+    const c2=new THREE.CatmullRomCurve3(points2);
+
+    const tube1=new THREE.Mesh(
+      new THREE.TubeGeometry(c1,80,.14,10,false),
+      mat(0x58d9ff)
+    );
+
+    const tube2=new THREE.Mesh(
+      new THREE.TubeGeometry(c2,80,.14,10,false),
+      mat(0xa66cff)
+    );
+
+    group.add(tube1,tube2);
+
+    for(let i=0;i<9;i++){
+
+      const y=3.8-i*.95;
+
+      const bar=new THREE.Mesh(
+        new THREE.CylinderGeometry(.055,.055,1.7,8),
+        mat(0xffffff,.55)
+      );
+
+      bar.rotation.z=Math.PI/2;
+      bar.position.set(offset,y,0);
+
+      group.add(bar);
+    }
+
+    return group;
+  }
+
+  const left=chromatid(-1.0);
+  const right=chromatid(1.0);
+
+  right.scale.y=-1;
+
+  g.add(left,right);
+
+  const centromere=new THREE.Mesh(
+    new THREE.SphereGeometry(.45,24,24),
+    mat(0xffd35a)
+  );
+
+  centromere.name="dna-area";
+
+  g.add(centromere);
+
+  const ring=new THREE.Mesh(
+    new THREE.TorusGeometry(1.3,.025,8,80),
+    mat(0x68dfff,.5)
+  );
+
+  ring.rotation.x=Math.PI/2;
+
+  g.add(ring);
+}
+
+buildChromosome();
+
+/* ---------- DNA ---------- */
+
+let dnaObjects=[];
+
+function clearGroup(g){
+
+  while(g.children.length){
+
+    const obj=g.children.pop();
+
+    if(obj.geometry) obj.geometry.dispose();
+    if(obj.material && !Array.isArray(obj.material)){
+      obj.material.dispose();
+    }
+  }
+}
+
+function buildDNA(){
+
+  const g=groups.dna;
+
+  clearGroup(g);
+  dnaObjects=[];
+
+  const radius=2.2;
+  const step=.42;
+
+  for(let i=0;i<sequence.length;i++){
+
+    const t=i*step;
+    const y=(i-(sequence.length-1)/2)*.34;
+
+    const a=t;
+
+    const p1=new THREE.Vector3(
+      Math.cos(a)*radius,
+      y,
+      Math.sin(a)*radius
+    );
+
+    const p2=new THREE.Vector3(
+      Math.cos(a+Math.PI)*radius,
+      y,
+      Math.sin(a+Math.PI)*radius
+    );
+
+    const m1=mat(colors[sequence[i]]);
+    const m2=mat(colors[complement(sequence[i])]);
+
+    const s1=new THREE.Mesh(
+      new THREE.SphereGeometry(.19,16,16),
+      m1
+    );
+
+    const s2=new THREE.Mesh(
+      new THREE.SphereGeometry(.19,16,16),
+      m2
+    );
+
+    s1.position.copy(p1);
+    s2.position.copy(p2);
+
+    s1.userData.index=i;
+    s1.userData.base=sequence[i];
+
+    s2.userData.index=i;
+    s2.userData.base=complement(sequence[i]);
+
+    g.add(s1,s2);
+
+    dnaObjects.push(s1,s2);
+
+    const bond=new THREE.Mesh(
+      new THREE.CylinderGeometry(.045,.045,
+        p1.distanceTo(p2),6
+      ),
+      mat(0xffffff,.35,false)
+    );
+
+    bond.position.copy(
+      p1.clone().add(p2).multiplyScalar(.5)
+    );
+
+    bond.lookAt(p2);
+
+    bond.rotateX(Math.PI/2);
+
+    g.add(bond);
+  }
+
+  const curve1=[];
+  const curve2=[];
+
+  for(let i=0;i<sequence.length;i++){
+
+    const t=i*step;
+    const y=(i-(sequence.length-1)/2)*.34;
+
+    curve1.push(
+      new THREE.Vector3(
+        Math.cos(t)*radius,
+        y,
+        Math.sin(t)*radius
+      )
+    );
+
+    curve2.push(
+      new THREE.Vector3(
+        Math.cos(t+Math.PI)*radius,
+        y,
+        Math.sin(t+Math.PI)*radius
+      )
+    );
+  }
+
+  const c1=new THREE.CatmullRomCurve3(curve1);
+  const c2=new THREE.CatmullRomCurve3(curve2);
+
+  g.add(
+    new THREE.Mesh(
+      new THREE.TubeGeometry(c1,100,.055,8,false),
+      mat(0x58d9ff)
+    ),
+    new THREE.Mesh(
+      new THREE.TubeGeometry(c2,100,.055,8,false),
+      mat(0xff5fa2)
+    )
+  );
+
+  /* glow ring */
+
+  const ring=new THREE.Mesh(
+    new THREE.TorusGeometry(3.5,.025,8,100),
+    mat(0x65dfff,.3)
+  );
+
+  ring.rotation.x=Math.PI/2;
+
+  g.add(ring);
+}
+
+function complement(b){
+  return {
+    A:"T",
+    T:"A",
+    G:"C",
+    C:"G"
+  }[b];
+}
+
+buildDNA();
+
+/* ---------- RNA ---------- */
+
+function buildRNA(){
+
+  const g=groups.rna;
+
+  clearGroup(g);
+
+  const points=[];
+
+  for(let i=0;i<sequence.length;i++){
+
+    const y=(i-sequence.length/2)*.48;
+
+    points.push(
+      new THREE.Vector3(
+        Math.sin(i*.65)*1.2,
+        y,
+        Math.cos(i*.65)*1.2
+      )
+    );
+  }
+
+  const curve=new THREE.CatmullRomCurve3(points);
+
+  const strand=new THREE.Mesh(
+    new THREE.TubeGeometry(curve,100,.1,10,false),
+    mat(0xff62a6)
+  );
+
+  g.add(strand);
+
+  sequence.forEach((b,i)=>{
+
+    const p=points[i];
+
+    const sphere=new THREE.Mesh(
+      new THREE.SphereGeometry(.25,16,16),
+      mat(colors[b])
+    );
+
+    sphere.position.copy(p);
+    sphere.position.x+=.22;
+
+    g.add(sphere);
+
+    if(i%3===0){
+
+      const label=new THREE.Mesh(
+        new THREE.SphereGeometry(.08,8,8),
+        mat(0xffffff)
+      );
+
+      label.position.copy(p);
+      label.x+=.5;
+
+      g.add(label);
+    }
+  });
+}
+
+buildRNA();
+
+/* ---------- PROTEIN ---------- */
+
+function buildProtein(){
+
+  const g=groups.protein;
+
+  clearGroup(g);
+
+  const aminoColors=[
+    0x4db6ff,
+    0x65e68a,
+    0xffc857,
+    0xff6688,
+    0xa66cff,
+    0x6be7d7
+  ];
+
+  const points=[];
+
+  for(let i=0;i<42;i++){
+
+    const t=i*.48;
+
+    points.push(
+      new THREE.Vector3(
+        Math.sin(t)*2.4,
+        (i-21)*.22,
+        Math.cos(t)*2.4
+      )
+    );
+  }
+
+  const curve=new THREE.CatmullRomCurve3(points);
+
+  g.add(
+    new THREE.Mesh(
+      new THREE.TubeGeometry(curve,160,.09,8,false),
+      mat(0x73dcff,.55)
+    )
+  );
+
+  points.forEach((p,i)=>{
+
+    const sphere=new THREE.Mesh(
+      new THREE.SphereGeometry(
+        .24+(i%4)*.035,
+        16,
+        16
+      ),
+      mat(aminoColors[i%aminoColors.length])
+    );
+
+    sphere.position.copy(p);
+    sphere.name="amino-acid";
+
+    g.add(sphere);
+  });
+}
+
+buildProtein();
+
+/* ---------- GENETICS ---------- */
+
+function buildGenetics(){
+
+  const g=groups.genetics;
+
+  clearGroup(g);
+
+  const left=[];
+  const right=[];
+
+  for(let i=0;i<6;i++){
+
+    left.push(
+      new THREE.Vector3(
+        -3,
+        (i-2.5)*1.05,
+        0
+      )
+    );
+
+    right.push(
+      new THREE.Vector3(
+        3,
+        (i-2.5)*1.05,
+        0
+      )
+    );
+  }
+
+  left.forEach((p,i)=>{
+
+    const a=new THREE.Mesh(
+      new THREE.SphereGeometry(.42,20,20),
+      mat(i%2?0x55ddff:0xa66cff)
+    );
+
+    const b=new THREE.Mesh(
+      new THREE.SphereGeometry(.42,20,20),
+      mat(i%2?0xff6688:0xffc857)
+    );
+
+    a.position.copy(p);
+    b.position.copy(right[i]);
+
+    g.add(a,b);
+
+    const bar=new THREE.Mesh(
+      new THREE.CylinderGeometry(.06,.06,6,8),
+      mat(0xffffff,.25,false)
+    );
+
+    bar.rotation.z=Math.PI/2;
+    bar.position.y=p.y;
+
+    g.add(bar);
+  });
+
+  const offspring=new THREE.Mesh(
+    new THREE.SphereGeometry(1.4,32,32),
+    new THREE.MeshStandardMaterial({
+      color:0x63eaff,
+      transparent:true,
+      opacity:.22,
+      emissive:0x2388aa,
+      emissiveIntensity:.4
+    })
+  );
+
+  offspring.position.y=-7;
+  g.add(offspring);
+
+  const ring=new THREE.Mesh(
+    new THREE.TorusGeometry(1.8,.05,8,80),
+    mat(0x65dfff,.4)
+  );
+
+  ring.position.y=-7;
+  ring.rotation.x=Math.PI/2;
+
+  g.add(ring);
+}
+
+buildGenetics();
+
+/* ---------- MODE ---------- */
+
+const modeInfo={
+  cell:["CELL","WHOLE CELL"],
+  nucleus:["NUCLEUS","GENETIC CONTROL CENTER"],
+  chromosome:["CHROMOSOME","PACKAGED DNA"],
+  dna:["DNA","GENETIC INFORMATION"],
+  rna:["RNA","GENETIC MESSAGE"],
+  protein:["PROTEIN","MOLECULAR PRODUCT"],
+  genetics:["GENETICS","INHERITANCE SIMULATION"]
+};
+
+function setMode(mode){
+
+  currentMode=mode;
+
+  Object.keys(groups).forEach(k=>{
+    groups[k].visible=(k===mode);
+  });
+
+  document.getElementById("modeTitle").textContent=
+    modeInfo[mode][0];
+
+  document.getElementById("modeSub").textContent=
+    modeInfo[mode][1];
+
+  document.querySelectorAll(".node").forEach(n=>{
+    n.classList.toggle(
+      "active",
+      n.dataset.mode===mode
+    );
+  });
+
+  selectedIndex=-1;
+
+  if(mode==="cell"){
+    camera.position.set(0,0,20);
+  }
+
+  if(mode==="nucleus"){
+    camera.position.set(0,0,15);
+  }
+
+  if(mode==="chromosome"){
+    camera.position.set(0,0,18);
+  }
+
+  if(mode==="dna"){
+    camera.position.set(0,0,17);
+  }
+
+  if(mode==="rna"){
+    camera.position.set(0,0,17);
+  }
+
+  if(mode==="protein"){
+    camera.position.set(0,0,18);
+  }
+
+  if(mode==="genetics"){
+    camera.position.set(0,0,19);
+  }
+
+  controls.target.set(0,0,0);
+  controls.update();
+
+  document.getElementById("hint").classList.remove("hidden");
+
+  setTimeout(()=>{
+    document.getElementById("hint").classList.add("hidden");
+  },2600);
+}
+
+/* ---------- BUTTONS ---------- */
+
+window.openExplore=function(){
+
+  const order=[
+    "cell",
+    "nucleus",
+    "chromosome",
+    "dna",
+    "rna",
+    "protein"
+  ];
+
+  const i=order.indexOf(currentMode);
+
+  if(i<order.length-1){
+    setMode(order[i+1]);
+    toast("NEXT BIOLOGICAL LEVEL");
+  }else{
+    openSimulation();
+  }
+};
+
+window.openDNA=function(){
+  setMode("dna");
+  openPanelDNA();
+};
+
+window.openGenetics=function(){
+  setMode("genetics");
+  openGeneticsPanel();
+};
+
+window.openSimulation=function(){
+  openSimulationPanel();
+};
+
+window.closePanel=function(){
+  document.getElementById("panel").classList.remove("show");
+};
+
+/* ---------- DNA PANEL ---------- */
+
+function openPanelDNA(){
+
+  const panel=document.getElementById("panel");
+  const content=document.getElementById("panelContent");
+
+  document.getElementById("panelTitle").textContent=
+    "DNA CONTROL";
+
+  content.innerHTML=`
+
+    <div class="info">
+      VIRTUAL DNA SEQUENCE • EDUCATIONAL SIMULATION
+    </div>
+
+    <div class="sequence" id="sequence"></div>
+
+    <div class="grid">
+      <button class="btn primary" id="mutateBtn">MUTATE</button>
+      <button class="btn" id="insertBtn">INSERT</button>
+      <button class="btn danger" id="deleteBtn">DELETE</button>
+      <button class="btn" id="undoBtn">UNDO</button>
+      <button class="btn" id="replicateBtn">REPLICATE</button>
+      <button class="btn" id="transcribeBtn">TRANSCRIBE</button>
+      <button class="btn" id="translateBtn">TRANSLATE</button>
+      <button class="btn" id="crisprBtn">CRISPR SIM</button>
+    </div>
+
+    <div class="info" id="dnaInfo">
+      Tap a DNA base in the sequence or directly tap a base on the 3D model.
+    </div>
+  `;
+
+  renderSequence();
+
+  document.getElementById("mutateBtn").onclick=mutateBase;
+  document.getElementById("insertBtn").onclick=insertBase;
+  document.getElementById("deleteBtn").onclick=deleteBase;
+  document.getElementById("undoBtn").onclick=undoDNA;
+  document.getElementById("replicateBtn").onclick=replicate;
+  document.getElementById("transcribeBtn").onclick=transcribe;
+  document.getElementById("translateBtn").onclick=translate;
+  document.getElementById("crisprBtn").onclick=crisprSim;
+
+  panel.classList.add("show");
+}
+
+function renderSequence(){
+
+  const box=document.getElementById("sequence");
+  if(!box)return;
+
+  box.innerHTML="";
+
+  sequence.forEach((b,i)=>{
+
+    const el=document.createElement("button");
+
+    el.className="base"+
+      (i===selectedIndex?" selected":"");
+
+    el.textContent=b;
+
+    el.style.color=
+      "#"+colors[b].toString(16).padStart(6,"0");
+
+    el.onclick=()=>{
+      selectedIndex=i;
+      renderSequence();
+      updateDNAInfo();
+    };
+
+    box.appendChild(el);
+  });
+
+  updateDNAInfo();
+}
+
+function updateDNAInfo(){
+
+  const info=document.getElementById("dnaInfo");
+
+  if(!info)return;
+
+  if(selectedIndex<0){
+    info.textContent=
+      "Select a base to edit the virtual DNA.";
+  }else{
+    info.textContent=
+      "Selected position "+
+      (selectedIndex+1)+
+      " • Base "+sequence[selectedIndex]+
+      " • Complement "+
+      complement(sequence[selectedIndex]);
+  }
+}
+
+function mutateBase(){
+
+  if(selectedIndex<0){
+    selectedIndex=Math.floor(Math.random()*sequence.length);
+  }
+
+  const old=sequence[selectedIndex];
+
+  const options=["A","T","G","C"]
+    .filter(x=>x!==old);
+
+  sequence[selectedIndex]=
+    options[Math.floor(Math.random()*options.length)];
+
+  buildDNA();
+
+  renderSequence();
+
+  pulseDNA();
+
+  toast("VIRTUAL MUTATION APPLIED");
+}
+
+function insertBase(){
+
+  const bases=["A","T","G","C"];
+
+  const b=bases[Math.floor(Math.random()*4)];
+
+  const index=
+    selectedIndex<0
+      ? sequence.length
+      : selectedIndex+1;
+
+  sequence.splice(index,0,b);
+
+  selectedIndex=index;
+
+  buildDNA();
+  renderSequence();
+
+  toast("VIRTUAL BASE INSERTED");
+}
+
+function deleteBase(){
+
+  if(sequence.length<=6){
+    toast("MINIMUM SIMULATION LENGTH");
+    return;
+  }
+
+  const index=
+    selectedIndex<0
+      ? sequence.length-1
+      : selectedIndex;
+
+  sequence.splice(index,1);
+
+  selectedIndex=Math.min(
+    index,
+    sequence.length-1
+  );
+
+  buildDNA();
+  renderSequence();
+
+  toast("VIRTUAL BASE REMOVED");
+}
+
+let dnaHistory=[];
+
+function saveHistory(){
+  dnaHistory.push([...sequence]);
+
+  if(dnaHistory.length>20){
+    dnaHistory.shift();
+  }
+}
+
+function undoDNA(){
+
+  if(!dnaHistory.length){
+    toast("NOTHING TO UNDO");
+    return;
+  }
+
+  sequence=dnaHistory.pop();
+
+  buildDNA();
+  renderSequence();
+
+  toast("PREVIOUS DNA STATE RESTORED");
+}
+
+/* history wrappers */
+
+const originalMutate=mutateBase;
+const originalInsert=insertBase;
+const originalDelete=deleteBase;
+
+mutateBase=function(){
+  saveHistory();
+  originalMutate();
+};
+
+insertBase=function(){
+  saveHistory();
+  originalInsert();
+};
+
+deleteBase=function(){
+  saveHistory();
+  originalDelete();
+};
+
+/* ---------- BIOLOGY SIMULATIONS ---------- */
+
+function replicate(){
+
+  setMode("dna");
+
+  const old=[...sequence];
+
+  const g=groups.dna;
+
+  g.scale.set(.75,.75,.75);
+
+  let t=0;
+
+  const anim=setInterval(()=>{
+
+    t+=.08;
+
+    g.rotation.y=t;
+
+    if(t>Math.PI*3){
+
+      clearInterval(anim);
+
+      g.scale.set(1,1,1);
+
+      toast(
+        "DNA REPLICATION SIMULATION COMPLETE"
+      );
+    }
+
+  },30);
+}
+
+function transcribe(){
+
+  setMode("rna");
+
+  groups.rna.scale.set(.2,.2,.2);
+
+  let s=.2;
+
+  const anim=setInterval(()=>{
+
+    s+=.045;
+
+    groups.rna.scale.set(s,s,s);
+
+    if(s>=1){
+
+      clearInterval(anim);
+
+      toast(
+        "TRANSCRIPTION: DNA → RNA"
+      );
+    }
+
+  },35);
+}
+
+function translate(){
+
+  setMode("protein");
+
+  groups.protein.scale.set(.15,.15,.15);
+
+  let s=.15;
+
+  const anim=setInterval(()=>{
+
+    s+=.05;
+
+    groups.protein.scale.set(s,s,s);
+
+    if(s>=1){
+
+      clearInterval(anim);
+
+      toast(
+        "TRANSLATION: RNA → PROTEIN"
+      );
+    }
+
+  },35);
+}
+
+function crisprSim(){
+
+  setMode("dna");
+
+  toast(
+    "CONCEPTUAL CRISPR TARGETING SIMULATION"
+  );
+
+  let pulse=0;
+
+  const interval=setInterval(()=>{
+
+    pulse+=.12;
+
+    groups.dna.scale.set(
+      1+Math.sin(pulse)*.04,
+      1+Math.sin(pulse)*.04,
+      1+Math.sin(pulse)*.04
+    );
+
+    if(pulse>Math.PI*4){
+
+      clearInterval(interval);
+
+      groups.dna.scale.set(1,1,1);
+
+      toast(
+        "VIRTUAL EDIT MARKED • NO REAL DNA CHANGED"
+      );
+    }
+
+  },30);
+}
+
+/* ---------- SIM PANEL ---------- */
+
+function openSimulationPanel(){
+
+  const panel=document.getElementById("panel");
+  const content=document.getElementById("panelContent");
+
+  document.getElementById("panelTitle").textContent=
+    "BIOLOGY ENGINE";
+
+  content.innerHTML=`
+
+    <div class="info">
+      MOLECULAR FLOW
+      <br><br>
+      DNA → RNA → PROTEIN
+    </div>
+
+    <div class="grid">
+      <button class="btn primary" id="sRep">DNA REPLICATION</button>
+      <button class="btn" id="sTrans">TRANSCRIPTION</button>
+      <button class="btn" id="sTransl">TRANSLATION</button>
+      <button class="btn" id="sCR">CRISPR CONCEPT</button>
+    </div>
+
+    <div class="info">
+      All operations are visual simulations for learning.
+      They do not modify real organisms or genetic material.
+    </div>
+  `;
+
+  panel.classList.add("show");
+
+  document.getElementById("sRep").onclick=replicate;
+  document.getElementById("sTrans").onclick=transcribe;
+  document.getElementById("sTransl").onclick=translate;
+  document.getElementById("sCR").onclick=crisprSim;
+}
+
+/* ---------- GENETICS ---------- */
+
+function openGeneticsPanel(){
+
+  const panel=document.getElementById("panel");
+  const content=document.getElementById("panelContent");
+
+  document.getElementById("panelTitle").textContent=
+    "GENETICS LAB";
+
+  content.innerHTML=`
+
+    <div class="info">
+      CONCEPTUAL INHERITANCE MODEL
+    </div>
+
+    <div class="info">
+      PARENT 1<br>
+      <b>Aa</b>
+      <br><br>
+      PARENT 2<br>
+      <b>Aa</b>
+    </div>
+
+    <div class="grid">
+      <button class="btn primary" id="cross">CREATE OFFSPRING</button>
+      <button class="btn" id="randomAllele">RANDOMIZE</button>
+    </div>
+
+    <div class="info" id="genInfo">
+      Explore how allele combinations can be represented visually.
+    </div>
+  `;
+
+  panel.classList.add("show");
+
+  document.getElementById("cross").onclick=()=>{
+
+    const options=[
+      "AA",
+      "Aa",
+      "Aa",
+      "aa"
+    ];
+
+    const result=
+      options[Math.floor(Math.random()*options.length)];
+
+    document.getElementById("genInfo").innerHTML=
+      "OFFSPRING ALLELES<br><br><b>"+
+      result+
+      "</b><br><br>Conceptual simulation only.";
+
+    groups.genetics.children.forEach(o=>{
+      if(o.position.y===-7){
+        o.scale.set(1.25,1.25,1.25);
+      }
+    });
+
+    toast("OFFSPRING COMBINATION GENERATED");
+  };
+
+  document.getElementById("randomAllele").onclick=()=>{
+    toast("ALLELE MODEL RANDOMIZED");
+  };
+}
+
+/* ---------- RAYCAST ---------- */
+
+const raycaster=new THREE.Raycaster();
+const pointer=new THREE.Vector2();
+
+renderer.domElement.addEventListener(
+  "pointerdown",
+  e=>{
+
+    const rect=
+      renderer.domElement.getBoundingClientRect();
+
+    pointer.x=
+      ((e.clientX-rect.left)/rect.width)*2-1;
+
+    pointer.y=
+      -((e.clientY-rect.top)/rect.height)*2+1;
+
+    raycaster.setFromCamera(pointer,camera);
+
+    const objects=[];
+
+    if(currentMode==="dna"){
+      objects.push(...dnaObjects);
+    }
+
+    if(currentMode==="cell"){
+      objects.push(...groups.cell.children);
+    }
+
+    if(currentMode==="nucleus"){
+      objects.push(...groups.nucleus.children);
+    }
+
+    if(currentMode==="chromosome"){
+      objects.push(...groups.chromosome.children);
+    }
+
+    const hits=raycaster.intersectObjects(objects,true);
+
+    if(!hits.length)return;
+
+    const obj=hits[0].object;
+
+    if(currentMode==="dna" &&
+       typeof obj.userData.index==="number"){
+
+      selectedIndex=obj.userData.index;
+
+      openPanelDNA();
+
+      renderSequence();
+
+      toast(
+        "BASE "+(selectedIndex+1)+" SELECTED"
+      );
+
+      return;
+    }
+
+    if(currentMode==="cell"){
+
+      const next=
+        obj.name==="nucleus"
+          ? "nucleus"
+          : null;
+
+      if(next){
+        setMode(next);
+        toast("ENTERING NUCLEUS");
+      }
+
+    }else if(currentMode==="nucleus"){
+
+      if(
+        obj.name==="chromosome-fiber" ||
+        obj.name==="chromosome-area"
+      ){
+        setMode("chromosome");
+        toast("CHROMOSOME FOUND");
+      }
+
+    }else if(currentMode==="chromosome"){
+
+      if(obj.name==="dna-area"){
+        setMode("dna");
+        toast("DNA REGION OPENED");
+      }
+    }
+
+  },
+  {passive:true}
+);
+
+/* ---------- PULSE ---------- */
+
+function pulseDNA(){
+
+  let t=0;
+
+  const id=setInterval(()=>{
+
+    t+=.15;
+
+    groups.dna.children.forEach((o,i)=>{
+
+      if(o.isMesh && o.geometry.type==="SphereGeometry"){
+
+        const s=
+          1+
+          Math.sin(t+i*.35)*.12;
+
+        o.scale.set(s,s,s);
+      }
+    });
+
+    if(t>Math.PI*3){
+      clearInterval(id);
+    }
+
+  },25);
+}
+
+/* ---------- RESET ---------- */
+
+window.resetWorld=function(){
+
+  sequence=[...originalSequence];
+  selectedIndex=-1;
+  dnaHistory=[];
+
+  buildDNA();
+  buildRNA();
+
+  setMode("cell");
+  closePanel();
+
+  toast("SIMULATION RESET");
+};
+
+/* ---------- TOAST ---------- */
+
+let toastTimer;
+
+function toast(text){
+
+  const el=document.getElementById("toast");
+
+  el.textContent=text;
+  el.classList.add("show");
+
+  clearTimeout(toastTimer);
+
+  toastTimer=setTimeout(()=>{
+    el.classList.remove("show");
+  },2400);
+}
+
+/* ---------- FLOW BUTTONS ---------- */
+
+document.querySelectorAll(".node").forEach(btn=>{
+
+  btn.addEventListener("click",()=>{
+
+    setMode(btn.dataset.mode);
+
+    if(btn.dataset.mode==="dna"){
+      openPanelDNA();
+    }
+
+    if(btn.dataset.mode==="genetics"){
+      openGeneticsPanel();
+    }
+
+  });
+});
+
+/* ---------- KEYBOARD ---------- */
+
+window.addEventListener("keydown",e=>{
+
+  if(e.key==="Escape"){
+    closePanel();
+  }
+
+  if(e.key==="r"){
+    resetWorld();
+  }
+
+  if(e.key==="d"){
+    openDNA();
+  }
+});
+
+/* ---------- RESIZE ---------- */
+
+window.addEventListener("resize",()=>{
+
+  camera.aspect=
+    innerWidth/innerHeight;
+
+  camera.updateProjectionMatrix();
+
+  renderer.setSize(
+    innerWidth,
+    innerHeight
+  );
+
+});
+
+/* ---------- ANIMATION ---------- */
+
+const clock=new THREE.Clock();
+
+function animate(){
+
+  requestAnimationFrame(animate);
+
+  const time=clock.getElapsedTime();
+
+  stars.rotation.y=time*.004;
+
+  groups.cell.rotation.y=time*.045;
+
+  groups.nucleus.rotation.y=time*.025;
+
+  groups.chromosome.rotation.y=
+    Math.sin(time*.4)*.18;
+
+  groups.dna.rotation.y=time*.28;
+
+  groups.rna.rotation.z=
+    Math.sin(time*.4)*.15;
+
+  groups.protein.rotation.y=
+    time*.12;
+
+  groups.genetics.rotation.y=
+    Math.sin(time*.3)*.12;
+
+  controls.update();
+
+  renderer.render(scene,camera);
+}
+
+animate();
+
+/* ---------- START ---------- */
+
+setTimeout(()=>{
+
+  document.getElementById("loader").style.opacity="0";
+
+  setTimeout(()=>{
+    document.getElementById("loader").remove();
+  },650);
+
+  setMode("cell");
+
+},900);
+
+</script>
+</body>
+</html>
